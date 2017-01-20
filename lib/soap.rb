@@ -12,7 +12,7 @@ class Cccode::Soap
   
   def initialize
     @country  = 'Germany'
-    @currency = 'de'
+    @currency = 'Mark'
   end
   
   def client
@@ -49,7 +49,7 @@ class Cccode::Soap
     @country = country if country
     # todo: database
     get_xml(:get_currency_by_country)
-    @country_code = @xml.css('Table/CountryCode').first.content
+    @currency = @xml.css('Table/Currency').first.content
     #Country.insert_country_code(@country_code)
   end
 
@@ -99,7 +99,6 @@ class Cccode::Soap
   end
   
   def call
-    binding.pry
     @response = self.client.call(@command, :message => @message)
   end
   

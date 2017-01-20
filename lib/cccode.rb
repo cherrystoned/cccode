@@ -1,5 +1,6 @@
 require 'rails'
 require 'cccode/version'
+require 'cccode/models/country_code'
 require 'soap'
 module Cccode
   
