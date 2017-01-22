@@ -1,7 +1,7 @@
 class Cccode::Soap
 
   require 'pry'
-  require 'Savon'
+  require 'savon'
   require 'misc'
     
   WSDL = 'http://www.webservicex.net/country.asmx?WSDL'
@@ -13,6 +13,11 @@ class Cccode::Soap
   def initialize
     @country  = 'Germany'
     @currency = 'Mark'
+    self.countries if table_empty?
+  end
+
+  def table_empty?
+    Cccode::Soap.table_empty?
   end
   
   def self.table_empty?
@@ -20,13 +25,13 @@ class Cccode::Soap
   end
   
   def client
-    begin
+    #begin
       @client ||= Savon.client(wsdl: WSDL)
       # todo: error handling, tests!
-    rescue Savon::Error => e
-      puts e.inspect
-      nil
-    end
+    #rescue Savon::Error => e
+    #  puts e.inspect
+    #  nil
+    #end
   end
 
   def countries
