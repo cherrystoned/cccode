@@ -2,7 +2,6 @@ class Cccode::Soap
 
   require 'pry'
   require 'Savon'
-  require 'active_support/core_ext/object/try'
   require 'misc'
     
   WSDL = 'http://www.webservicex.net/country.asmx?WSDL'
@@ -14,6 +13,10 @@ class Cccode::Soap
   def initialize
     @country  = 'Germany'
     @currency = 'Mark'
+  end
+  
+  def self.table_empty?
+    !Cccode::CountryCode.exists?
   end
   
   def client
@@ -37,26 +40,32 @@ class Cccode::Soap
   
   def country_code(country=nil)
     @country = country if country
-    # todo: database
+    @country_code = Cccode::CountryCode.get_country_code(@country)
+    return @country_code if @country_code.present?
     get_xml(:get_iso_country_code_by_county_name)
     @country_code = get_content('Table/CountryCode')
-    #Country.insert_country_code(@country_code)
+    Cccode::CountryCode.insert_country_code(@country, @country_code)
+    @country_code
   end
 
   def currency(country=nil)
     @country = country if country
-    # todo: database
+    @currency = Cccode::CountryCode.get_currency(@country)
+    return @currency if @currency.present?
     get_xml(:get_currency_by_country)
     @currency = get_content('Table/Currency')
-    #Country.insert_country_code(@country_code)
+    Cccode::CountryCode.insert_currency(@country, @currency)
+    @currency
   end
 
   def currency_code(currency=nil)
     @currency = currency if currency
-    # todo: database
+    @currency_code = Cccode::CountryCode.get_currency_code(@currency)
+    return @currency_code if @currency_code.present?
     get_xml(:get_currency_code_by_currency_name)
     @currency_code = get_content('Table/CurrencyCode')
-    #Country.insert_country_code(@country_code)
+    Cccode::CountryCode.insert_currency_code(@currency, @currency_code)
+    @currency_code
   end
   
   private
