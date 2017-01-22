@@ -3,7 +3,8 @@ class Cccode::Soap
   require 'pry'
   require 'Savon'
   require 'active_support/core_ext/object/try'
-  
+  require 'misc'
+    
   WSDL = 'http://www.webservicex.net/country.asmx?WSDL'
   
   attr_accessor :client, :countries, :response, :result, :xml,
@@ -26,22 +27,19 @@ class Cccode::Soap
   end
 
   def countries
-    begin
-      # todo: database
-      get_xml(:get_countries)
-      @countries = @xml.css('Table').map{|e| e.content.strip}
-      #Country.insert_countries(@countries)
-    rescue Savon::Error => e
-      puts e.inspect
-      nil
-    end
+    @countries = Cccode::CountryCode.countries
+    return @countries if @countries.present?
+    get_xml(:get_countries)
+    @countries = @xml.css('Table').map{|e| e.content.strip}
+    Cccode::CountryCode.insert_countries(@countries)
+    @countries
   end
-
+  
   def country_code(country=nil)
     @country = country if country
     # todo: database
     get_xml(:get_iso_country_code_by_county_name)
-    @country_code = @xml.css('Table/CountryCode').first.content
+    @country_code = get_content('Table/CountryCode')
     #Country.insert_country_code(@country_code)
   end
 
@@ -49,7 +47,7 @@ class Cccode::Soap
     @country = country if country
     # todo: database
     get_xml(:get_currency_by_country)
-    @currency = @xml.css('Table/Currency').first.content
+    @currency = get_content('Table/Currency')
     #Country.insert_country_code(@country_code)
   end
 
@@ -57,11 +55,15 @@ class Cccode::Soap
     @currency = currency if currency
     # todo: database
     get_xml(:get_currency_code_by_currency_name)
-    @currency_code = @xml.css('Table/CurrencyCode').first.content
+    @currency_code = get_content('Table/CurrencyCode')
     #Country.insert_country_code(@country_code)
   end
   
   private
+  
+  def get_content(css)
+    @xml.css(css).first.present? ? @xml.css(css).first.content : nil
+  end
   
   def set_mode(mode)
     @command = mode
@@ -103,38 +105,8 @@ class Cccode::Soap
   end
   
   def result
-    @result = nested_keys(@response.hash, *@result_keys)
+    @result = Cccode::Misc.nested_keys(@response.hash, *@result_keys)
     @xml = Nokogiri::XML(@result)
-  end
-  
-  
-  # todo: move to lib
-  def nested_keys(source_hash, *target_keys)
-    begin
-      new_keys = target_keys
-      new_hash = source_hash
-      while new_keys.present?
-        return nil unless valid_key?(new_keys[0], new_hash)
-        
-        chk_try = new_hash.try(:[], new_keys[0])
-        if chk_try
-          new_hash = new_hash[new_keys[0]]
-          new_keys.delete_at(0)
-          return chk_try   if new_keys.blank?
-        else
-          return nil
-        end
-      end   if new_keys && new_hash
-      new_hash
-    rescue StandardError => e
-      return nil
-    end
-  end
-  
-  def valid_key?(k, source=nil)
-    key_valid = k.is_a?(String) || k.is_a?(Integer) || k.is_a?(Symbol)
-    ar_valid  = source ? (source.is_a?(Array) ? k.is_a?(Integer) : true) : true
-    key_valid && ar_valid
   end
 
 end
