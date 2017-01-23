@@ -4,10 +4,33 @@ module Cccode
   class CountryCode < ActiveRecord::Base
     
     # get
-    def self.countries
-      CountryCode.pluck(:country)
-    end
+    # def self.countries
+    #   CountryCode.pluck(:country)
+    # end
 
+    def self.insert_all(xml)
+      xml.css('Table').each_with_index do |_, idx|
+        CountryCode.create(
+          country: xml.css('Table/Name')[idx].text.strip,
+          country_code: xml.css('Table/CountryCode')[idx].text.strip,
+          currency: xml.css('Table/Currency')[idx].text.strip,
+          currency_code: xml.css('Table/CurrencyCode')[idx].text.strip,
+        )
+      end
+      true
+    end
+    
+=begin
+    def self.currencies
+      countries = CountryCode.all
+      countries.each do |country|
+        return nil if country.country_code.blank? ||
+          country.currency.blank? ||
+          country.currency_code.blank?
+      end
+      countries
+    end
+    
     def self.get_country_code(country)
       rec = CountryCode.where(country: country).first
       rec ? rec.country_code : nil
@@ -22,9 +45,11 @@ module Cccode
       rec = CountryCode.where(currency: currency).first
       rec ? rec.currency_code : nil
     end
+=end
     
     
     # inserts & updates
+=begin
     def self.insert_countries(countries)
       return if countries.blank?
       CountryCode.destroy_all
@@ -50,6 +75,7 @@ module Cccode
       rec = CountryCode.where(currency: currency).first
       rec.update(currency_code: currency_code) if rec
     end
+=end
     
   end
  

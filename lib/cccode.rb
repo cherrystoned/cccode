@@ -5,14 +5,46 @@ require 'soap'
 
 module Cccode
   
-  def initialize
+  class Codes
     
+    attr_accessor :country, :country_code, :currency, :currency_code
+  
+    # Cccode::Codes.new('Germany')
+    def initialize(country)
+      record = Cccode::CountryCode.where(country: country).first
+      if record
+        @country          = record.country
+        @country_code     = record.country_code
+        @currency         = record.currency
+        @currency_codde   = record.currency_code
+      end
+    end
   end
   
-  ### instance methods
+  ## database
+  # Cccode.reset
+  def self.reset
+    Cccode::CountryCode.destroy_all
+  end
+
+  # Cccode.get_all
+  def self.get_all
+    # todo: truncate!
+    Cccode::CountryCode.destroy_all
+    s = Soap.new(false)
+    s.get_all
+  end
   
-  
-  ### class methods
+  ## get data
+  # Cccode.get_data('Germany')
+  def self.get_data(country)
+    s = Soap.new
+    s.countries
+    s.country_code(country)
+    s.currency_code(s.currency(country))
+    s
+  end
+
   # Cccode.get_countries
   def self.get_countries
     s = Soap.new

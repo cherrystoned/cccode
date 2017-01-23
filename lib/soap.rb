@@ -8,12 +8,11 @@ class Cccode::Soap
   
   attr_accessor :client, :countries, :response, :result, :xml,
                 :command, :result_keys, :message,
-                :country_code, :country, :currency, :currency_code
+                :country_code, :country, :currency, :currency_code,
+                :currencies
   
-  def initialize
-    @country  = 'Germany'
-    @currency = 'Mark'
-    self.countries if table_empty?
+  def initialize(get_countries=true)
+    self.get_all if get_countries && table_empty?
   end
 
   def table_empty?
@@ -34,43 +33,48 @@ class Cccode::Soap
     #end
   end
 
+  def get_all
+    get_xml(:get_currency_code)
+    Cccode::CountryCode.insert_all(@xml)
+  end
+  
   def countries
-    @countries = Cccode::CountryCode.countries
-    return @countries if @countries.present?
+    #@countries = Cccode::CountryCode.countries
+    #return @countries if @countries.present?
     get_xml(:get_countries)
     @countries = @xml.css('Table').map{|e| e.content.strip}
-    Cccode::CountryCode.insert_countries(@countries)
-    @countries
+    #Cccode::CountryCode.insert_countries(@countries)
+    #@countries
   end
   
   def country_code(country=nil)
     @country = country if country
-    @country_code = Cccode::CountryCode.get_country_code(@country)
-    return @country_code if @country_code.present?
+    #@country_code = Cccode::CountryCode.get_country_code(@country)
+    #return @country_code if @country_code.present?
     get_xml(:get_iso_country_code_by_county_name)
     @country_code = get_content('Table/CountryCode')
-    Cccode::CountryCode.insert_country_code(@country, @country_code)
-    @country_code
+    #Cccode::CountryCode.insert_country_code(@country, @country_code)
+    #@country_code
   end
 
   def currency(country=nil)
     @country = country if country
-    @currency = Cccode::CountryCode.get_currency(@country)
-    return @currency if @currency.present?
+    #@currency = Cccode::CountryCode.get_currency(@country)
+    #return @currency if @currency.present?
     get_xml(:get_currency_by_country)
     @currency = get_content('Table/Currency')
-    Cccode::CountryCode.insert_currency(@country, @currency)
-    @currency
+    #Cccode::CountryCode.insert_currency(@country, @currency)
+    #@currency
   end
 
   def currency_code(currency=nil)
     @currency = currency if currency
-    @currency_code = Cccode::CountryCode.get_currency_code(@currency)
-    return @currency_code if @currency_code.present?
+    #@currency_code = Cccode::CountryCode.get_currency_code(@currency)
+    #return @currency_code if @currency_code.present?
     get_xml(:get_currency_code_by_currency_name)
     @currency_code = get_content('Table/CurrencyCode')
-    Cccode::CountryCode.insert_currency_code(@currency, @currency_code)
-    @currency_code
+    #Cccode::CountryCode.insert_currency_code(@currency, @currency_code)
+    #@currency_code
   end
   
   private
@@ -105,6 +109,11 @@ class Cccode::Soap
           :get_currency_code_by_currency_name_result
         ]
         @message = {"CurrencyName" => @currency}
+      when :get_currency_code
+        @result_keys = [
+          :envelope, :body, :get_currency_code_response,
+          :get_currency_code_result
+        ]
     end
   end
   
