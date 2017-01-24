@@ -5,6 +5,7 @@ require 'soap'
 
 module Cccode
   
+  # database data
   class Codes
     
     attr_accessor :country, :country_code, :currency, :currency_code
@@ -16,12 +17,12 @@ module Cccode
         @country          = record.country
         @country_code     = record.country_code
         @currency         = record.currency
-        @currency_codde   = record.currency_code
+        @currency_code    = record.currency_code
       end
     end
   end
   
-  ## database
+  ## database actions
   # Cccode.reset
   def self.reset
     Cccode::CountryCode.destroy_all
@@ -29,22 +30,12 @@ module Cccode
 
   # Cccode.get_all
   def self.get_all
-    # todo: truncate!
     Cccode::CountryCode.destroy_all
     s = Soap.new(false)
     s.get_all
   end
   
-  ## get data
-  # Cccode.get_data('Germany')
-  def self.get_data(country)
-    s = Soap.new
-    s.countries
-    s.country_code(country)
-    s.currency_code(s.currency(country))
-    s
-  end
-
+  ## SOAP actions
   # Cccode.get_countries
   def self.get_countries
     s = Soap.new
