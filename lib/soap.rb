@@ -11,8 +11,7 @@ class Cccode::Soap
                 :country_code, :country, :currency, :currency_code,
                 :currencies
   
-  def initialize(get_countries=true)
-    #self.get_all if get_countries && table_empty?
+  def initialize
   end
 
   # todo: needed here? only model direct?
@@ -25,13 +24,7 @@ class Cccode::Soap
   end
   
   def client
-    begin
-      @client ||= Savon.client(wsdl: WSDL)
-      # todo: error handling, tests!
-    rescue Savon::Error => e
-      puts e.inspect
-      nil
-    end
+    @client ||= Savon.client(wsdl: WSDL)
   end
 
   def get_all
@@ -112,7 +105,7 @@ class Cccode::Soap
     begin
       @response = self.client.call(@command, :message => @message)
     rescue Savon::HTTPError => e
-      raise "savon client error, call failed: #{e.http.code}"
+      raise "savon call error, call failed: #{e.http.code}"
     end
   end
   

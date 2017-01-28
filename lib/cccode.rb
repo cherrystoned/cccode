@@ -31,7 +31,7 @@ module Cccode
   # Cccode.get_all
   def self.get_all
     Cccode::CountryCode.destroy_all
-    s = Soap.new(false)
+    s = Soap.new
     s.get_all
   end
   
